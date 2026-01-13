@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 interface PlayPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ autoplay?: string }>;
 }
 
 export async function generateMetadata({ params }: PlayPageProps) {
@@ -22,8 +23,9 @@ export async function generateMetadata({ params }: PlayPageProps) {
   };
 }
 
-export default async function PlayPage({ params }: PlayPageProps) {
+export default async function PlayPage({ params, searchParams }: PlayPageProps) {
   const { id } = await params;
+  const { autoplay } = await searchParams;
   const gift = await getGift(id);
 
   if (!gift) {
@@ -73,6 +75,7 @@ export default async function PlayPage({ params }: PlayPageProps) {
         videoUrl={gift.videoUrl}
         recipientName={gift.recipientName}
         giftName={gift.giftName}
+        autoplay={autoplay === 'true'}
       />
 
       {/* Footer */}

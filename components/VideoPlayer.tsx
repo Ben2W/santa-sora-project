@@ -1,20 +1,31 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface VideoPlayerProps {
   videoUrl: string;
   recipientName: string;
   giftName: string;
+  autoplay?: boolean;
 }
 
 export default function VideoPlayer({
   videoUrl,
   recipientName,
   giftName,
+  autoplay = false,
 }: VideoPlayerProps) {
-  const [hasStarted, setHasStarted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(autoplay);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (autoplay && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay was blocked, show play button
+        setHasStarted(false);
+      });
+    }
+  }, [autoplay]);
 
   const handlePlay = () => {
     if (videoRef.current) {
