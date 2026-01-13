@@ -1,26 +1,198 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --christmas-red: #c41e3a;
+  --christmas-red-dark: #a01830;
+  --christmas-green: #228b22;
+  --christmas-green-dark: #1a6b1a;
+  --christmas-gold: #ffd700;
+  --snow-white: #f8f9fa;
+  --frost-blue: #e8f4f8;
+  --midnight: #1a1a2e;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-christmas-red: var(--christmas-red);
+  --color-christmas-green: var(--christmas-green);
+  --color-christmas-gold: var(--christmas-gold);
+  --color-snow-white: var(--snow-white);
+  --color-frost-blue: var(--frost-blue);
+  --color-midnight: var(--midnight);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), 'Quicksand', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: white;
+}
+
+.font-festive {
+  font-family: var(--font-festive), 'Mountains of Christmas', cursive;
+}
+
+.font-sans {
+  font-family: var(--font-sans), 'Quicksand', sans-serif;
+}
+
+/* Snowfall animation */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  z-index: 1;
+  pointer-events: none;
+  animation: fall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+/* Glowing button effect */
+.btn-festive {
+  background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+  box-shadow: 0 4px 15px rgba(196, 30, 58, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn-festive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.6);
+}
+
+/* Frosted glass card */
+.card-frost {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+}
+
+/* Gift tag style */
+.gift-tag {
+  position: relative;
+  background: linear-gradient(135deg, #f5f5dc 0%, #fff8dc 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.gift-tag::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: var(--christmas-red);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.gift-tag::after {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 10px;
+  background: var(--christmas-gold);
+}
+
+/* Ribbon effect */
+.ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+}
+
+.ribbon span {
+  position: absolute;
+  display: block;
+  width: 100px;
+  padding: 4px 0;
+  background: var(--christmas-red);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 10px;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(45deg);
+  top: 20px;
+  right: -25px;
+}
+
+/* Twinkling stars */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.star {
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--christmas-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Input styling */
+.input-festive {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.input-festive:focus {
+  border-color: var(--christmas-gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+  outline: none;
+}
+
+.input-festive::placeholder {
+  color: #999;
+}
+
+/* Status badges */
+.badge-pending {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+  color: #333;
+}
+
+.badge-generating {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.badge-ready {
+  background: linear-gradient(135deg, var(--christmas-green) 0%, var(--christmas-green-dark) 100%);
+}
+
+.badge-error {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
