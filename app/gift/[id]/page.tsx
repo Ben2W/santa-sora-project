@@ -77,7 +77,7 @@ export default async function GiftPage({ params }: GiftPageProps) {
                       {statusMessages[gift.status]}
                     </h2>
                     <p className="text-white/60">
-                      This may take 5-10 minutes. You can leave this page and
+                      This may take a minute or two. You can leave this page and
                       check back later.
                     </p>
                   </>

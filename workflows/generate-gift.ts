@@ -19,12 +19,12 @@ export async function generateGiftWorkflow(giftId: string) {
 
     // Step 2: Poll for completion using sleep (1 minute intervals, max 20 attempts)
     let videoBuffer: Buffer | null = null;
-    const maxAttempts = 50;
+    const maxAttempts = 20;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       await sleep('1 minute');
 
-      const result = await checkSoraStatusStep(generationId, attempt, maxAttempts);
+      const result = await checkSoraStatusStep(generationId, attempt);
 
       if (result.status === 'completed') {
         videoBuffer = await downloadVideoStep(generationId);
@@ -89,10 +89,9 @@ async function startSoraStep(gift: Gift): Promise<string> {
 async function checkSoraStatusStep(
   generationId: string,
   attempt: number
-  maxAttempts: number,
 ): Promise<{ status: 'queued' | 'in_progress' | 'completed' | 'failed' }> {
   'use step';
-  console.log(`Checking Sora status (attempt ${attempt}/${maxAttempts})...`);
+  console.log(`Checking Sora status (attempt ${attempt}/20)...`);
   const status = await getSoraStatus(generationId);
   return { status: status.status };
 }
