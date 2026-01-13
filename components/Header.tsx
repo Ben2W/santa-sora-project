@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function Header() {
   return (
@@ -37,11 +37,18 @@ export default function Header() {
             />
           </SignedIn>
           <SignedOut>
-            <SignInButton mode="modal">
-              <button className="btn-festive px-6 py-2 rounded-full text-white font-semibold">
-                Sign In
-              </button>
-            </SignInButton>
+            <Link
+              href="/waitlist"
+              className="btn-festive px-6 py-2 rounded-full text-white font-semibold"
+            >
+              Join Waitlist
+            </Link>
+            <Link
+              href="/sign-in"
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
           </SignedOut>
         </div>
       </nav>

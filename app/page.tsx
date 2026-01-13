@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,12 +87,19 @@ export default function HomePage() {
               </Link>
             </SignedIn>
             <SignedOut>
-              <SignInButton mode="modal">
-                <button className="btn-festive px-8 py-4 rounded-full text-white font-bold text-lg inline-flex items-center justify-center gap-2">
-                  <span>🎅</span>
-                  Get Started - It&apos;s Free!
-                </button>
-              </SignInButton>
+              <Link
+                href="/waitlist"
+                className="btn-festive px-8 py-4 rounded-full text-white font-bold text-lg inline-flex items-center justify-center gap-2"
+              >
+                <span>🎅</span>
+                Join the Waitlist
+              </Link>
+              <Link
+                href="/sign-in"
+                className="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-lg transition-colors inline-flex items-center justify-center gap-2"
+              >
+                Already have access? Sign In
+              </Link>
             </SignedOut>
           </div>
         </div>
