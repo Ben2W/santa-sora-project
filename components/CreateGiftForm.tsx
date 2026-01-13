@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function CreateGiftForm() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     giftName: '',
@@ -28,7 +29,9 @@ export default function CreateGiftForm() {
       }
 
       const gift = await response.json();
-      router.push(`/gift/${gift.id}`);
+      startTransition(() => {
+        router.push(`/gift/${gift.id}`);
+      });
     } catch (error) {
       console.error('Error creating gift:', error);
       alert('Failed to create gift. Please try again.');
@@ -110,10 +113,10 @@ export default function CreateGiftForm() {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isPending}
         className="btn-festive w-full py-4 rounded-full text-white font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isLoading ? (
+        {isLoading || isPending ? (
           <>
             <div className="spinner w-6 h-6" />
             Creating Magic...

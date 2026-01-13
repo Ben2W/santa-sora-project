@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { nanoid } from 'nanoid';
+import { start } from 'workflow/api';
 import { createGift, getUserGifts } from '@/lib/redis';
-import { startGeneration } from '@/lib/generate';
+import { generateGiftWorkflow } from '@/workflows/generate-gift';
 import { Gift } from '@/lib/types';
 
 export async function GET() {
@@ -49,10 +50,8 @@ export async function POST(request: NextRequest) {
 
     await createGift(gift);
 
-    // Trigger generation in the background (don't await)
-    startGeneration(gift.id).catch((err) =>
-      console.error('Failed to start generation:', err)
-    );
+    // Start durable workflow (survives crashes and navigation)
+    await start(generateGiftWorkflow, [gift.id]);
 
     return NextResponse.json(gift);
   } catch (error) {
