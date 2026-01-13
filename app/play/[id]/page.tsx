@@ -81,7 +81,7 @@ export default async function PlayPage({ params }: PlayPageProps) {
           Made with holiday magic 🎄
         </p>
         <p className="text-white/30 text-xs mt-1">
-          santasvideomagic.com
+          santa-qr.com
         </p>
       </div>
     </div>
