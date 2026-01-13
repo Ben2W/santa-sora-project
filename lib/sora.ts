@@ -110,61 +110,61 @@ Requirements:
   return prompt;
 }
 
-export async function generateSantaVideo(
+export interface SoraStatus {
+  status: 'queued' | 'in_progress' | 'completed' | 'failed';
+  progress?: number;
+}
+
+/**
+ * Starts a Sora video generation and returns the generation ID.
+ * Does NOT poll - caller is responsible for checking status.
+ */
+export async function startSoraGeneration(
   giftName: string,
   recipientName: string,
   jokes: string
-): Promise<Buffer> {
+): Promise<string> {
   const openai = getOpenAI();
 
-  try {
-    // First, generate a creative prompt using GPT
-    console.log('Generating creative prompt with GPT...');
-    const prompt = await generateVideoPrompt(giftName, recipientName, jokes);
+  // First, generate a creative prompt using GPT
+  console.log('Generating creative prompt with GPT...');
+  const prompt = await generateVideoPrompt(giftName, recipientName, jokes);
 
-    // Create video generation job with Sora
-    console.log('Starting Sora video generation...');
-    const video = await openai.videos.create({
-      model: 'sora-2-pro',
-      prompt: prompt,
-      size: '1280x720',
-      seconds: '12',
-    });
+  // Create video generation job with Sora
+  console.log('Starting Sora video generation...');
+  const video = await openai.videos.create({
+    model: 'sora-2-pro',
+    prompt: prompt,
+    size: '1280x720',
+    seconds: '12',
+  });
 
-    console.log('Sora video generation started:', video.id);
+  console.log('Sora video generation started:', video.id);
+  return video.id;
+}
 
-    // Poll for completion
-    let status = video;
-    const maxAttempts = 120; // 10 minutes max (5 second intervals)
-    let attempts = 0;
+/**
+ * Checks the status of a Sora generation.
+ */
+export async function getSoraStatus(generationId: string): Promise<SoraStatus> {
+  const openai = getOpenAI();
+  const status = await openai.videos.retrieve(generationId);
+  console.log(`Sora progress: ${status.progress || 0}% - ${status.status}`);
+  return {
+    status: status.status as SoraStatus['status'],
+    progress: status.progress,
+  };
+}
 
-    while ((status.status === 'in_progress' || status.status === 'queued') && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      status = await openai.videos.retrieve(video.id);
-      console.log(`Sora progress: ${status.progress || 0}% - ${status.status}`);
-      attempts++;
-    }
-
-    if (status.status === 'failed') {
-      console.error('Sora video generation failed:', status);
-      throw new Error('Sora video generation failed');
-    }
-
-    if (status.status !== 'completed') {
-      throw new Error(`Sora video generation timed out. Status: ${status.status}`);
-    }
-
-    console.log('Sora video completed, downloading...');
-
-    // Download the video content
-    const content = await openai.videos.downloadContent(video.id);
-    const arrayBuffer = await content.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-
-  } catch (error) {
-    console.error('Sora video generation error:', error);
-    throw new Error('Failed to generate video with Sora');
-  }
+/**
+ * Downloads a completed Sora video.
+ */
+export async function downloadSoraVideo(generationId: string): Promise<Buffer> {
+  const openai = getOpenAI();
+  console.log('Downloading Sora video...');
+  const content = await openai.videos.downloadContent(generationId);
+  const arrayBuffer = await content.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 // Fallback function - generates a simple placeholder

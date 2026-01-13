@@ -1,7 +1,7 @@
-import { FatalError } from 'workflow';
+import { FatalError, sleep } from 'workflow';
 import { getGift, updateGift } from '@/lib/redis';
 import { uploadVideo, uploadQRCode } from '@/lib/blob';
-import { generateSantaVideo, generatePlaceholderVideo } from '@/lib/sora';
+import { startSoraGeneration, getSoraStatus, downloadSoraVideo, generatePlaceholderVideo } from '@/lib/sora';
 import { generateFestiveQRCode } from '@/lib/qrcode';
 import { Gift } from '@/lib/types';
 
@@ -14,21 +14,43 @@ export async function generateGiftWorkflow(giftId: string) {
   }
 
   try {
-    // Step 1: Try Sora (no retries - uses FatalError on failure)
-    let videoBuffer = await trySoraGeneration(gift);
+    // Step 1: Start Sora generation and store the ID
+    const generationId = await startSoraStep(gift);
 
-    // Step 2: If Sora failed, use fallback (this can retry)
+    // Step 2: Poll for completion using sleep (1 minute intervals, max 20 attempts)
+    let videoBuffer: Buffer | null = null;
+    const maxAttempts = 20;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await sleep('1 minute');
+
+      const result = await checkSoraStatusStep(generationId, attempt);
+
+      if (result.status === 'completed') {
+        videoBuffer = await downloadVideoStep(generationId);
+        break;
+      }
+
+      if (result.status === 'failed') {
+        console.log('Sora generation failed, using fallback');
+        break;
+      }
+
+      // Still in progress, loop will continue after next sleep
+    }
+
+    // Step 3: If Sora failed or timed out, use fallback
     if (!videoBuffer) {
       videoBuffer = await getFallbackVideo();
     }
 
-    // Step 3: Upload video (this can retry)
+    // Step 4: Upload video
     const videoUrl = await uploadVideoStep(giftId, videoBuffer);
 
-    // Step 4: Generate QR code (this can retry)
+    // Step 5: Generate QR code
     const qrCodeUrl = await generateQR(giftId);
 
-    // Step 5: Mark as ready
+    // Step 6: Mark as ready
     await markReady(giftId, videoUrl, qrCodeUrl);
 
     return { success: true, giftId };
@@ -43,25 +65,41 @@ async function fetchGift(giftId: string): Promise<Gift | null> {
   return getGift(giftId);
 }
 
-// This step tries Sora ONCE - if it fails, returns null (no retries via FatalError catch)
-async function trySoraGeneration(gift: Gift): Promise<Buffer | null> {
+// Start Sora generation and store the ID in the database
+async function startSoraStep(gift: Gift): Promise<string> {
   'use step';
   await updateGift(gift.id, { status: 'generating_video' });
 
   try {
-    const videoBuffer = await generateSantaVideo(
+    const generationId = await startSoraGeneration(
       gift.giftName,
       gift.recipientName,
       gift.jokes
     );
-    return videoBuffer;
+    // Store the generation ID so we can resume polling if needed
+    await updateGift(gift.id, { soraGenerationId: generationId });
+    return generationId;
   } catch (error) {
-    // Log the error but don't retry - Sora costs $3 per attempt!
-    console.error('Sora generation failed (not retrying - $3/attempt):', error);
-    // Return null to signal we should use fallback
-    // Throwing FatalError would stop the workflow entirely, so we just return null
-    return null;
+    console.error('Failed to start Sora generation:', error);
+    throw new FatalError('Failed to start Sora generation');
   }
+}
+
+// Check Sora status - this step is called repeatedly via sleep loop
+async function checkSoraStatusStep(
+  generationId: string,
+  attempt: number
+): Promise<{ status: 'queued' | 'in_progress' | 'completed' | 'failed' }> {
+  'use step';
+  console.log(`Checking Sora status (attempt ${attempt}/20)...`);
+  const status = await getSoraStatus(generationId);
+  return { status: status.status };
+}
+
+// Download completed video
+async function downloadVideoStep(generationId: string): Promise<Buffer> {
+  'use step';
+  return downloadSoraVideo(generationId);
 }
 
 // Fallback video step - this CAN retry since it's just fetching a static file

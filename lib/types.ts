@@ -8,6 +8,7 @@ export interface Gift {
   qrCodeUrl: string | null;
   status: 'pending' | 'generating_video' | 'generating_qr' | 'ready' | 'error';
   errorMessage?: string;
+  soraGenerationId?: string;
   createdAt: number;
   updatedAt: number;
 }
